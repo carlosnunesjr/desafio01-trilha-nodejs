@@ -16,5 +16,5 @@ Para usar <desafio01-trilha-nodejs>, siga estas etapas:
 
 1. Faça uma cópia do projeto: `git clone https://github.com/carlosnunesjr/desafio01-trilha-nodejs.git`.
 2. Após a cópia para atualizar as dependências do projeto, deve executar: `yarn install'` 
-3. Atualizado as dependências, para executar o projeto utilize: `yarn dev'`
+3. Atualizado as dependências, para executar o projeto utilize o comando: `yarn dev'`
 4. Para executar os testes: `yarn test'`
