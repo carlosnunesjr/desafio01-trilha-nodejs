@@ -9,28 +9,26 @@ app.use(express.json());
 
  const users = [];
 
-function exitsUser(username){
-  return users.some( user => user.username === username);
-};
-
 function checksExistsUserAccount(request, response, next) {
   const {username} = request.headers;
-  const exists = exitsUser(username);
+  const user = users.find( user => user.username === username);
 
-  if(!exists){
+  if(!user){
     response.status(404).json({"error": "Username doesn't exists."});
     return;
   }
+
+  request.user = user;
+
   next();
 }
 
 app.post('/users', (request, response) => {
   const {name, username} = request.body;
 
-  const exists = exitsUser(username);
+  const exists = users.some( user => user.username === username);
   if(exists){
-    response.status(400).json({"error": "Username already exists."});
-    return;
+    return response.status(400).json({"error": "Username already exists."});
   }
 
   const jsonData = { 
@@ -46,15 +44,13 @@ app.post('/users', (request, response) => {
 });
 
 app.get('/todos', checksExistsUserAccount, (request, response) => {
-  const {username} = request.headers;
+  const {user} = request;
 
-  const userIndex = users.findIndex( user => user.username === username);
-
-  response.json(users[userIndex]?.todos);
+  response.json(user.todos);
 });
 
 app.post('/todos', checksExistsUserAccount, (request, response) => {
-  const {username} = request.headers;
+  const {user} = request;
   const {title, deadline} = request.body;
 
   const todo = { 
@@ -65,51 +61,47 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
     created_at: new Date()
   };
 
-  const userIndex = users.findIndex( user => user.username === username);
-  users[userIndex]?.todos.push(todo);
-  response.json(users[userIndex].todos);
+  user.todos.push(todo);
+
+  response.status(201).send();
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
-  const {username} = request.headers;
+  const {user} = request;
   const {id} = request.params;
   const {title, deadline} = request.body;
 
-  const userIndex = users.findIndex( user => user.username === username);
-  users[userIndex]?.todos.map(todo => {
+  user.todos.map(todo => {
     if(todo.id === id){
       todo.title = title;
       todo.deadline = new Date(deadline);
     }
   });
 
-  response.json(users[userIndex]?.todos);
+  response.status(201).send();
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
-  const {username} = request.headers;
+  const {user} = request;
   const {id} = request.params;
 
-  const userIndex = users.findIndex( user => user.username === username);
-  users[userIndex]?.todos.map(todo => {
+  user.todos.map(todo => {
     if(todo.id === id){
       todo.done = true;
     }
   });
   
-  response.json(users[userIndex]?.todos);
+  response.status(201).send();
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
 
-  const {username} = request.headers;
+  const {user} = request;
   const {id} = request.params;
 
-  const userIndex = users.findIndex( user => user.username === username);
-  users[userIndex].todos = users[userIndex]?.todos.filter(todo => todo.id !== id);
+  user.todos = user.todos.filter(todo => todo.id !== id);
   
-  response.json(users[userIndex]?.todos);
-  
+  response.status(204).send();
 });
 
 module.exports = app;
